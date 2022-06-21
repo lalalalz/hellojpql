@@ -12,16 +12,6 @@ public class jqplMain {
 
         try {
 
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
-
-            Member member = new Member();
-            member.setUsername("Member1");
-            member.setAge(19);
-            member.setTeam(team);
-            em.persist(member);
-
             tx.commit();
         }
         catch (Exception e) {
@@ -32,6 +22,293 @@ public class jqplMain {
             em.close();
             emf.close();
         }
+    }
+
+    private static void nullif테스트(EntityManager em) {
+        Member member1 = new Member();
+        member1.setUsername("member1");
+        member1.setAge(20);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("member2");
+        member2.setAge(20);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("관리자");
+        member3.setAge(10);
+        em.persist(member3);
+
+        String jpql = "select NULLIF(m.username, '관리자') from Member m";
+
+        List<String> resultList = em.createQuery(jpql, String.class).getResultList();
+
+        for (String s : resultList) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    private static void colasce테스트(EntityManager em) {
+        Member member1 = new Member();
+        member1.setUsername("member1");
+        member1.setAge(20);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("member2");
+        member2.setAge(20);
+        em.persist(member2);
+
+        Member member3 = new Member();
+//            member3.setUsername("member3");
+        member3.setAge(10);
+        em.persist(member3);
+
+        String jpql = "select coalesce(m.username, '이름 없는 회원') from Member m";
+
+        List<String> resultList = em.createQuery(jpql, String.class).getResultList();
+
+        for (String s : resultList) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    private static void case조건식(EntityManager em) {
+        Order order1 = new Order();
+        order1.setOrderAmount(100);
+        em.persist(order1);
+
+        Order order2 = new Order();
+        order2.setOrderAmount(100);
+        em.persist(order2);
+
+        Order order3 = new Order();
+        order3.setOrderAmount(21);
+        em.persist(order3);
+
+        String jpql = "select " +
+                "   case" +
+                "       when o.orderAmount > 30 then '주문량 초과'" +
+                "       else '주문량 정상'" +
+                "   end " +
+                "from Order o";
+
+        List<String> resultList = em.createQuery(jpql, String.class).getResultList();
+
+        for (String str : resultList) {
+            System.out.println("str = " + str);
+        }
+    }
+
+    private static void in테스트코드(EntityManager em) {
+        Order order1 = new Order();
+        order1.setOrderAmount(100);
+        em.persist(order1);
+
+        Order order2 = new Order();
+        order2.setOrderAmount(21);
+        em.persist(order2);
+
+        Product product1 = new Product();
+        product1.setAmount(21);
+        em.persist(product1);
+
+        Product product2 = new Product();
+        product2.setAmount(20);
+        em.persist(product2);
+
+        String jpql = "select o from Order o where o.orderAmount in (select p.amount from Product p)";
+
+        List<Order> resultList = em.createQuery(jpql, Order.class).getResultList();
+
+        for (Order order : resultList) {
+            System.out.println("order = " + order);
+        }
+    }
+
+    private static void any테스트코드(EntityManager em) {
+        Order order1 = new Order();
+        order1.setOrderAmount(100);
+        em.persist(order1);
+
+        Order order2 = new Order();
+        order2.setOrderAmount(20);
+        em.persist(order2);
+
+        Product product1 = new Product();
+        product1.setAmount(21);
+        em.persist(product1);
+
+        Product product2 = new Product();
+        product2.setAmount(10);
+        em.persist(product2);
+
+        String jpql = "select o from Order o where o.orderAmount > any(select p.amount from Product p)";
+
+        List<Order> resultList = em.createQuery(jpql, Order.class).getResultList();
+
+        for (Order order : resultList) {
+            System.out.println("order = " + order);
+        }
+    }
+
+    private static void all지원함수(EntityManager em) {
+        Order order1 = new Order();
+        order1.setOrderAmount(20);
+        em.persist(order1);
+
+        Order order2 = new Order();
+        order2.setOrderAmount(20);
+        em.persist(order2);
+
+        Product product1 = new Product();
+        product1.setAmount(10);
+        em.persist(product1);
+
+        Product product2 = new Product();
+        product2.setAmount(10);
+        em.persist(product2);
+
+        String jpql = "select o from Order o where o.orderAmount > all(select p.amount from Product p)";
+
+        List<Order> resultList = em.createQuery(jpql, Order.class).getResultList();
+
+        for (Order order : resultList) {
+            System.out.println("order = " + order);
+        }
+    }
+
+    private static void 서브쿼리테스트(EntityManager em) {
+        Member member1 = new Member();
+        member1.setUsername("member1");
+        member1.setAge(20);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("member2");
+        member2.setAge(20);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("member3");
+        member3.setAge(10);
+        em.persist(member3);
+
+        String jpql = "select m from Member m where m.age > (select avg(m.age) from m)";
+
+        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    private static void exists테스트코드(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("teamA");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("teamB");
+        em.persist(teamB);
+
+        Member member1 = new Member();
+        member1.setUsername("member1");
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("member2");
+        member2.setTeam(teamA);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("member3");
+        member3.setTeam(teamB);
+        em.persist(member3);
+
+        String jpql = "select m from Member m where exists (select t from Team t where t.name = 'teasdfmA')";
+
+        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    private static void 연관관계없는조인조건(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("1");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("2");
+        em.persist(teamB);
+
+        Member member1 = new Member();
+        member1.setUsername("1");
+//            member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("1");
+//            member2.setTeam(teamA);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("2");
+//            member3.setTeam(teamB);
+        em.persist(member3);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select m from Member m left join Team t on m.username = t.name";
+
+        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+
+        System.out.println("resultList.size() = " + resultList.size());
+        for (Member member : resultList) {
+            System.out.println("member = " + member.getUsername());
+        }
+    }
+
+    private static void ON절대상필터링(EntityManager em) {
+//        Team teamA = new Team();
+//        teamA.setName("teamA");
+//        em.persist(teamA);
+//
+//        Team teamB = new Team();
+//        teamB.setName("teamB");
+//        em.persist(teamB);
+//
+//        Member member1 = new Member();
+//        member1.setUsername("Member1");
+//        member1.setTeam(teamA);
+//        em.persist(member1);
+//
+//        Member member2 = new Member();
+//        member2.setUsername("Member2");
+//        member2.setTeam(teamA);
+//        em.persist(member2);
+//
+//        Member member3 = new Member();
+//        member3.setUsername("Member3");
+//        member3.setTeam(teamB);
+//        em.persist(member3);
+//
+//        em.flush();
+//        em.clear();
+//
+//        String jpql = "select m from Member m join m.team t on t.name = 'teamA'";
+//
+//        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+//
+//        System.out.println("resultList.size() = " + resultList.size());
+//        for (Member member : resultList) {
+//            System.out.println("member = " + member.getTeam().getName());
+//        }
     }
 
     private static void 스칼라타입쿼리결과조회하기_dto(EntityManager em) {
@@ -62,8 +339,8 @@ public class jqplMain {
     }
 
     private static void 연관관계엔티티프로젝션(EntityManager em) {
-        List<Team> resultList = em.createQuery("select m.team from Member m", Team.class)
-                .getResultList();
+//        List<Team> resultList = em.createQuery("select m.team from Member m", Team.class)
+//                .getResultList();
     }
 
     private static void 엔티티프로젝션(EntityManager em) {
