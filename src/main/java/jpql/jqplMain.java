@@ -11,6 +11,15 @@ public class jqplMain {
         tx.begin();
 
         try {
+            Member member1 = new Member();
+            member1.setUsername("member1");
+            member1.setAge(20);
+            em.persist(member1);
+
+
+            TypedQuery<Member> query = em.createQuery("select m.username, m.age from Member m", Member.class);
+
+            System.out.println("query = " + query);
 
             tx.commit();
         }
