@@ -1,6 +1,7 @@
 package jpql;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.List;
 
 public class jqplMain {
@@ -11,15 +12,25 @@ public class jqplMain {
         tx.begin();
 
         try {
-            Member member1 = new Member();
-            member1.setUsername("member1");
-            member1.setAge(20);
-            em.persist(member1);
+            Team team = new Team();
+            team.setName("team1");
+            em.persist(team);
 
+            Member member = new Member();
+            member.setUsername("kim");
+            member.setAge(19);
+            member.setTeam(team);
+            em.persist(member);
 
-            TypedQuery<Member> query = em.createQuery("select m.username, m.age from Member m", Member.class);
+            em.flush();
+            em.clear();
 
-            System.out.println("query = " + query);
+            String jpql = "select t from Member m join m.team t";
+            List<Team> resultList = em.createQuery(jpql, Team.class).getResultList();
+
+            for (Team t : resultList) {
+                System.out.println("t = " + t);
+            }
 
             tx.commit();
         }
@@ -30,6 +41,97 @@ public class jqplMain {
         finally {
             em.close();
             emf.close();
+        }
+    }
+
+    private static void 묵시적조인(EntityManager em) {
+        Team team = new Team();
+        team.setName("team1");
+        em.persist(team);
+
+        Member member = new Member();
+        member.setUsername("kim");
+        member.setAge(19);
+        member.setTeam(team);
+        em.persist(member);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select m.team from Member m";
+
+        List<Team> resultList = em.createQuery(jpql, Team.class).getResultList();
+
+        for (Team t : resultList) {
+            System.out.println("t = " + t);
+        }
+    }
+
+    private static void 연관필드컬렉션값경로표현(EntityManager em) {
+        Team team = new Team();
+        team.setName("teamA");
+        em.persist(team);
+
+        Member memberA = new Member();
+        memberA.setUsername("memberA");
+        memberA.setTeam(team);
+        em.persist(memberA);
+
+        Member memberB = new Member();
+        memberB.setUsername("memberB");
+        memberB.setTeam(team);
+        em.persist(memberB);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select t.members from Team t";
+
+        Collection resultList = em.createQuery(jpql, Collection.class).getResultList();
+
+        //for (Object o : resultList) {
+        //    System.out.println("(Member) o = " + (Member) o);
+        //}
+    }
+
+    private static void 연관필드단일값(EntityManager em) {
+        Team team = new Team();
+        team.setName("teamA");
+        em.persist(team);
+
+        Member member = new Member();
+        member.setUsername("memberA");
+        member.setAge(19);
+        member.setTeam(team);
+        em.persist(member);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select m.team from Member m";
+
+        List<Team> resultList = em.createQuery(jpql, Team.class).getResultList();
+
+        for (Team t : resultList) {
+            System.out.println("t = " + t);
+        }
+    }
+
+    private static void 상태필드경로탐색(EntityManager em) {
+        Member member = new Member();
+        member.setUsername("memberA");
+        member.setAge(19);
+        em.persist(member);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select new jpql.MemberDTO(m.username, m.age) from Member m";
+
+        List<MemberDTO> resultList = em.createQuery(jpql, MemberDTO.class).getResultList();
+
+        for (MemberDTO m : resultList) {
+            System.out.println("m = " + m);
         }
     }
 
