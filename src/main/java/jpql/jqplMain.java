@@ -12,25 +12,28 @@ public class jqplMain {
         tx.begin();
 
         try {
-            Team team = new Team();
-            team.setName("team1");
-            em.persist(team);
 
-            Member member = new Member();
-            member.setUsername("kim");
-            member.setAge(19);
-            member.setTeam(team);
-            em.persist(member);
+Movie movie = new Movie();
+movie.setName("바람과 함께 사라지다.");
+movie.setDirector("Choi Jin soo");
+movie.setActor("Choi Min Kyung");
+em.persist(movie);
 
-            em.flush();
-            em.clear();
+Book book = new Book();
+book.setAuthor("Kim");
+book.setIsbn("1234");
+em.persist(book);
 
-            String jpql = "select t from Member m join m.team t";
-            List<Team> resultList = em.createQuery(jpql, Team.class).getResultList();
+em.flush();
+em.clear();
 
-            for (Team t : resultList) {
-                System.out.println("t = " + t);
-            }
+String jpql = "select i from Item i where treat(i as Movie).actor = 'Choi Min Kyung'";
+
+List<Item> resultList = em.createQuery(jpql, Item.class).getResultList();
+
+for (Item item : resultList) {
+    System.out.println("item = " + item);
+}
 
             tx.commit();
         }
@@ -41,6 +44,229 @@ public class jqplMain {
         finally {
             em.close();
             emf.close();
+        }
+    }
+
+    private static void 다형성쿼리와type함수(EntityManager em) {
+        Movie movie = new Movie();
+        movie.setActor("Choi Jin Soo");
+        movie.setDirector("Choi Min Kyung");
+        em.persist(movie);
+
+        Book book = new Book();
+        book.setAuthor("Kim");
+        book.setIsbn("1234");
+        em.persist(book);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select i from Item i where type(i) in (Book)";
+        List<Item> resultList = em.createQuery(jpql, Item.class).getResultList();
+
+        for (Item item : resultList) {
+            System.out.println("item = " + item);
+        }
+    }
+
+    private static void 페치조인(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("teamA");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("teamB");
+        em.persist(teamB);
+
+        Member member1 = new Member();
+        member1.setUsername("1");
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("2");
+        member2.setTeam(teamB);
+        em.persist(member2);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select m from Member m join fetch m.team";
+
+        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+        }
+    }
+
+    private static void 일반join(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("teamA");
+        em.persist(teamA);
+
+        Member member1 = new Member();
+        member1.setUsername("1");
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("2");
+        member2.setTeam(teamA);
+        em.persist(member2);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select m from Member m join m.team";
+
+        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+        }
+    }
+
+    private static void distinct페치조인(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("teamA");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("teamB");
+        em.persist(teamB);
+
+        Team teamC = new Team();
+        teamC.setName("teamC");
+        em.persist(teamC);
+
+        Member member1 = new Member();
+        member1.setUsername("1");
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("2");
+        member2.setTeam(teamA);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("3");
+        member3.setTeam(teamB);
+        em.persist(member3);
+
+        Member member4 = new Member();
+        member4.setUsername("4");
+//            member4.setTeam(teamA);
+        em.persist(member4);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select distinct t from Team t join fetch t.members where t.name = 'teamA'";
+
+        List<Team> resultList = em.createQuery(jpql, Team.class).getResultList();
+
+        for (Team team : resultList) {
+            System.out.println(team.getName() + " : " + team + " -> ");
+
+            for (Member member : team.getMembers()) {
+                System.out.println(member.getUsername());
+            }
+        }
+    }
+
+    private static void 컬렉션페치조인(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("teamA");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("teamB");
+        em.persist(teamB);
+
+        Team teamC = new Team();
+        teamC.setName("teamC");
+        em.persist(teamC);
+
+        Member member1 = new Member();
+        member1.setUsername("1");
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("2");
+        member2.setTeam(teamA);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("3");
+        member3.setTeam(teamB);
+        em.persist(member3);
+
+        Member member4 = new Member();
+        member4.setUsername("4");
+//            member4.setTeam(teamA);
+        em.persist(member4);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select t from Team t join fetch t.members where t.name = 'teamA'";
+
+        List<Team> resultList = em.createQuery(jpql, Team.class).getResultList();
+
+        for (Team team : resultList) {
+            System.out.println(team.getName() + " : " + team + " -> ");
+
+            for (Member member : team.getMembers()) {
+                System.out.println(member.getUsername());
+            }
+        }
+    }
+
+    private static void 엔티티페치조인(EntityManager em) {
+        Team teamA = new Team();
+        teamA.setName("teamA");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("teamB");
+        em.persist(teamB);
+
+        Team teamC = new Team();
+        teamC.setName("teamC");
+        em.persist(teamC);
+
+        Member member1 = new Member();
+        member1.setUsername("1");
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("2");
+        member2.setTeam(teamA);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("3");
+        member3.setTeam(teamB);
+        em.persist(member3);
+
+        Member member4 = new Member();
+        member4.setUsername("4");
+//            member4.setTeam(teamA);
+        em.persist(member4);
+
+        em.flush();
+        em.clear();
+
+        String jpql = "select m from Member m join fetch m.team";
+
+        List<Member> resultList = em.createQuery(jpql, Member.class).getResultList();
+
+        for (Member member : resultList) {
+            System.out.println(member.getUsername() + " : " + member.getTeam().getName());
         }
     }
 
